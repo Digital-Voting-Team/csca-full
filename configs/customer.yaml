@@ -1,0 +1,16 @@
+log:
+  disable_sentry: true
+  level: "info"
+
+db:
+  url: "postgres://postgres:postgres@customer_db/postgres?sslmode=disable"
+
+listener:
+  addr: :9101
+
+cop:
+  disabled: true
+  endpoint: "http://..."
+  upstream: "http://..."
+  service_name: customer-service
+  service_port: 80

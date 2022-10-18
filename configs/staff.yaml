@@ -1,0 +1,16 @@
+log:
+  disable_sentry: true
+  level: "info"
+
+db:
+  url: "postgres://postgres:postgres@staff_db/postgres?sslmode=disable"
+
+listener:
+  addr: :9102
+
+cop:
+  disabled: true
+  endpoint: "http://staff_db/..."
+  upstream: "http://..."
+  service_name: staff-service
+  service_port: 80
