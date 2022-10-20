@@ -34,14 +34,12 @@ services:
     image: kyrylrs/customer-service
     ports:
       - "9101:9101"
-    expose:
-      - "9110"
     depends_on:
       - customer_db
       - auth_service
     environment:
       - KV_VIPER_FILE=/config.yaml
-      - AUTH_SERVICE=http://auth_service/jwt/login
+      - AUTH_SERVICE=http://auth_service:9110/jwt/login
     volumes:
       - ./configs/customer.yaml:/config.yaml
     command: run service
