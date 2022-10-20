@@ -1,34 +1,20 @@
 version: '3.3'
 
 services:
-  customer-service:
+  auth_service:
     restart: unless-stopped
-    image: kyrylrs/customer-service
+    image: kyrylrs/auth-service
     ports:
-      - "9101:9101"
+      - "9110:9110"
     depends_on:
-      - customer_db
+      - auth_db
     environment:
       - KV_VIPER_FILE=/config.yaml
     volumes:
-      - ./configs/customer.yaml:/config.yaml
+      - ./configs/auth.yaml:/config.yaml
     command: run service
 
-  staff-service:
-    restart: unless-stopped
-    image: kyrylrs/staff-service
-    ports:
-      - "9102:9102"
-    depends_on:
-      - staff_db
-    environment:
-      - KV_VIPER_FILE=/config.yaml
-    volumes:
-      - ./configs/staff.yaml:/config.yaml
-    command: run service
-
-
-  staff_db:
+  auth_db:
     image: postgres
     restart: always
     expose:
@@ -41,6 +27,24 @@ services:
       - ENSUREDB=1
     volumes:
       - database_data:/var/lib/postgresql/data
+
+
+  customer-service:
+    restart: unless-stopped
+    image: kyrylrs/customer-service
+    ports:
+      - "9101:9101"
+    expose:
+      - "9110"
+    depends_on:
+      - customer_db
+      - auth_service
+    environment:
+      - KV_VIPER_FILE=/config.yaml
+      - AUTH_SERVICE=http://auth_service/jwt/login
+    volumes:
+      - ./configs/customer.yaml:/config.yaml
+    command: run service
 
   customer_db:
     image: postgres
@@ -55,6 +59,36 @@ services:
       - ENSUREDB=1
     volumes:
       - database_data:/var/lib/postgresql/data
+
+#  staff-service:
+#    restart: unless-stopped
+#    image: kyrylrs/staff-service
+#    ports:
+#      - "9102:9102"
+#    depends_on:
+#      - staff_db
+#      - auth_service
+#    environment:
+#      - KV_VIPER_FILE=/config.yaml
+#      - AUTH_SERVICE=http://auth_service/jwt/login
+#    volumes:
+#      - ./configs/staff.yaml:/config.yaml
+#    command: run service
+#
+#
+#  staff_db:
+#    image: postgres
+#    restart: always
+#    expose:
+#      - "5432"
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=postgres
+#      - POSTGRES_DB=postgres
+#      - PGDATA=/data/pgdata
+#      - ENSUREDB=1
+#    volumes:
+#      - database_data:/var/lib/postgresql/data
 
 volumes:
   database_data:
