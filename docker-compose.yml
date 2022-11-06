@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  auth_service:
+  auth-service:
     restart: unless-stopped
     image: kyrylrs/auth-service
     ports:
@@ -12,7 +12,7 @@ services:
       - KV_VIPER_FILE=/config.yaml
     volumes:
       - ./configs/auth.yaml:/config.yaml
-    command: run service
+    entrypoint: sh -c "auth-service migrate up && auth-service run service"
 
   auth_db:
     image: postgres
@@ -26,7 +26,7 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - auth_db:/var/lib/postgresql/data
 
 
   customer-service:
@@ -36,13 +36,12 @@ services:
       - "9101:9101"
     depends_on:
       - customer_db
-      - auth_service
+      - auth-service
     environment:
       - KV_VIPER_FILE=/config.yaml
-      - AUTH_SERVICE=http://auth_service:9110/jwt/login
     volumes:
       - ./configs/customer.yaml:/config.yaml
-    command: run service
+    entrypoint: sh -c "customer-service migrate up && customer-service run service"
 
   customer_db:
     image: postgres
@@ -56,7 +55,7 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - customer_db:/var/lib/postgresql/data
 
   staff-service:
     restart: unless-stopped
@@ -65,13 +64,12 @@ services:
       - "9102:9102"
     depends_on:
       - staff_db
-      - auth_service
+      - auth-service
     environment:
       - KV_VIPER_FILE=/config.yaml
-      - AUTH_SERVICE=http://auth_service:9110/jwt/login
     volumes:
       - ./configs/staff.yaml:/config.yaml
-    command: run service
+    entrypoint: sh -c "staff-service migrate up && staff-service run service"
 
 
   staff_db:
@@ -86,8 +84,12 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - staff_db:/var/lib/postgresql/data
 
 volumes:
-  database_data:
+  staff_db:
+    driver: local
+  auth_db:
+    driver: local
+  customer_db:
     driver: local
