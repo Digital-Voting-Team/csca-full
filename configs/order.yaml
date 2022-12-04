@@ -1,0 +1,26 @@
+log:
+  disable_sentry: true
+  level: "info"
+
+db:
+  url: "postgres://postgres:postgres@order-db/postgres?sslmode=disable"
+
+# if docker false, the first entry point will be used, otherwise the second!!!
+endpoints:
+  docker: true
+  services:
+    - service: "auth-service"
+      entry_points:
+        - "localhost:9110/jwt/login"
+        - "auth-service:9110/jwt/login"
+    - service: "staff-service"
+      entry_points:
+        - "localhost:9102/jwt/user"
+        - "staff-service:9102/jwt/user"
+
+listener:
+  addr: :9107
+
+cop:
+  disabled: true
+
