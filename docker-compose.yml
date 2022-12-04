@@ -90,10 +90,9 @@ services:
     restart: unless-stopped
     image: captainshepard/menu-service
     ports:
-      # localhost:docker
       - "9105:9105"
     depends_on:
-      - menu-db
+      - menu_db
     environment:
       - KV_VIPER_FILE=/config.yaml
     volumes:
@@ -101,12 +100,11 @@ services:
     entrypoint: sh -c "menu-service migrate up && menu-service run service"
 
 
-  menu-db:
+  menu_db:
     image: postgres
     restart: always
-    ports:
-      # localhost:docker
-      - "5435:5432"
+    expose:
+      - "5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -114,7 +112,35 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - menu-db:/var/lib/postgresql/data
+      - menu_db:/var/lib/postgresql/data
+
+  cafe-service:
+    restart: unless-stopped
+    image: captainshepard/cafe-service
+    ports:
+      - "9106:9106"
+    depends_on:
+      - cafe_db
+    environment:
+      - KV_VIPER_FILE=/config.yaml
+    volumes:
+      - ./configs/cafe.yaml:/config.yaml
+    entrypoint: sh -c "cafe-service migrate up && cafe-service run service"
+
+
+  cafe_db:
+    image: postgres
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/data/pgdata
+      - ENSUREDB=1
+    volumes:
+      - cafe_db:/var/lib/postgresql/data
 
 
 volumes:
@@ -124,5 +150,7 @@ volumes:
     driver: local
   customer_db:
     driver: local
-  menu-db:
+  menu_db:
+    driver: local
+  cafe_db:
     driver: local
