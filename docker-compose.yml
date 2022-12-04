@@ -7,14 +7,14 @@ services:
     ports:
       - "9110:9110"
     depends_on:
-      - auth_db
+      - auth-db
     environment:
       - KV_VIPER_FILE=/config.yaml
     volumes:
       - ./configs/auth.yaml:/config.yaml
     entrypoint: sh -c "auth-service migrate up && auth-service run service"
 
-  auth_db:
+  auth-db:
     image: postgres
     restart: always
     expose:
@@ -26,7 +26,7 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - auth_db:/var/lib/postgresql/data
+      - auth-db:/var/lib/postgresql/data
 
 
   customer-service:
@@ -35,7 +35,7 @@ services:
     ports:
       - "9101:9101"
     depends_on:
-      - customer_db
+      - customer-db
       - auth-service
     environment:
       - KV_VIPER_FILE=/config.yaml
@@ -43,7 +43,7 @@ services:
       - ./configs/customer.yaml:/config.yaml
     entrypoint: sh -c "customer-service migrate up && customer-service run service"
 
-  customer_db:
+  customer-db:
     image: postgres
     restart: always
     expose:
@@ -55,7 +55,7 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - customer_db:/var/lib/postgresql/data
+      - customer-db:/var/lib/postgresql/data
 
   staff-service:
     restart: unless-stopped
@@ -63,7 +63,7 @@ services:
     ports:
       - "9102:9102"
     depends_on:
-      - staff_db
+      - staff-db
       - auth-service
     environment:
       - KV_VIPER_FILE=/config.yaml
@@ -72,7 +72,7 @@ services:
     entrypoint: sh -c "staff-service migrate up && staff-service run service"
 
 
-  staff_db:
+  staff-db:
     image: postgres
     restart: always
     expose:
@@ -84,13 +84,12 @@ services:
       - PGDATA=/data/pgdata
       - ENSUREDB=1
     volumes:
-      - staff_db:/var/lib/postgresql/data
+      - staff-db:/var/lib/postgresql/data
 
   menu-service:
     restart: unless-stopped
     image: captainshepard/menu-service
     ports:
-      # localhost:docker
       - "9105:9105"
     depends_on:
       - menu-db
@@ -104,9 +103,8 @@ services:
   menu-db:
     image: postgres
     restart: always
-    ports:
-      # localhost:docker
-      - "5435:5432"
+    expose:
+      - "5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -116,13 +114,43 @@ services:
     volumes:
       - menu-db:/var/lib/postgresql/data
 
+  cafe-service:
+    restart: unless-stopped
+    image: captainshepard/cafe-service
+    ports:
+      - "9106:9106"
+    depends_on:
+      - cafe-db
+    environment:
+      - KV_VIPER_FILE=/config.yaml
+    volumes:
+      - ./configs/cafe.yaml:/config.yaml
+    entrypoint: sh -c "cafe-service migrate up && cafe-service run service"
+
+
+  cafe-db:
+    image: postgres
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/data/pgdata
+      - ENSUREDB=1
+    volumes:
+      - cafe-db:/var/lib/postgresql/data
+
 
 volumes:
-  staff_db:
+  staff-db:
     driver: local
-  auth_db:
+  auth-db:
     driver: local
-  customer_db:
+  customer-db:
     driver: local
   menu-db:
+    driver: local
+  cafe-db:
     driver: local
