@@ -28,35 +28,6 @@ services:
     volumes:
       - auth-db:/var/lib/postgresql/data
 
-
-  customer-service:
-    restart: unless-stopped
-    image: kyrylrs/customer-service
-    ports:
-      - "9101:9101"
-    depends_on:
-      - customer-db
-      - auth-service
-    environment:
-      - KV_VIPER_FILE=/config.yaml
-    volumes:
-      - ./configs/customer.yaml:/config.yaml
-    entrypoint: sh -c "customer-service migrate up && customer-service run service"
-
-  customer-db:
-    image: postgres
-    restart: always
-    expose:
-      - "5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-      - PGDATA=/data/pgdata
-      - ENSUREDB=1
-    volumes:
-      - customer-db:/var/lib/postgresql/data
-
   staff-service:
     restart: unless-stopped
     image: kyrylrs/staff-service
@@ -85,6 +56,41 @@ services:
       - ENSUREDB=1
     volumes:
       - staff-db:/var/lib/postgresql/data
+
+
+  web_client:
+    image: csca-front-local
+    restart: unless-stopped
+    ports:
+      - "8060:80"
+
+  customer-service:
+    restart: unless-stopped
+    image: kyrylrs/customer-service
+    ports:
+      - "9101:9101"
+    depends_on:
+      - customer-db
+      - auth-service
+    environment:
+      - KV_VIPER_FILE=/config.yaml
+    volumes:
+      - ./configs/customer.yaml:/config.yaml
+    entrypoint: sh -c "customer-service migrate up && customer-service run service"
+
+  customer-db:
+    image: postgres
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/data/pgdata
+      - ENSUREDB=1
+    volumes:
+      - customer-db:/var/lib/postgresql/data
 
   menu-service:
     restart: unless-stopped
