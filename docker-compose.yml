@@ -59,7 +59,7 @@ services:
 
 
   web_client:
-    image: csca-front-local
+    image: kyrylrs/csca-front
     restart: unless-stopped
     ports:
       - "8060:80"
