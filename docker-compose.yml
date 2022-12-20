@@ -176,6 +176,33 @@ services:
     volumes:
       - order-db:/var/lib/postgresql/data
 
+  warehouse-service:
+    restart: unless-stopped
+    image: fl4sher/warehouse-service
+    ports:
+      - "9109:9109"
+    depends_on:
+      - warehouse-db
+    environment:
+      - KV_VIPER_FILE=/config.yaml
+      - DB_URL=oracle://WAREHOUSE:WAREHOUSE@warehouse-db:1521/XEPDB1
+    volumes:
+      - ./configs/warehouse.yaml:/config.yaml
+    entrypoint: sh -c "warehouse-service run service"
+
+
+  warehouse-db:
+    image: gvenzl/oracle-xe:latest
+    container_name: warehouse-db
+    volumes:
+      - warehouse-db:/opt/oracle/oradata
+      - ./startup-scripts:/container-entrypoint-startdb.d
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: root
+      APP_USER: WAREHOUSE
+      APP_USER_PASSWORD: WAREHOUSE
 
 volumes:
   staff-db:
@@ -190,3 +217,6 @@ volumes:
     driver: local
   order-db:
     driver: local
+  warehouse-db:
+    driver: local
+  startup-scripts:
